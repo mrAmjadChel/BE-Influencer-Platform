@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ENUMS
+
+enum UserRole {
+  admin
+  editor
+  viewer
+}
+
+enum PersonType {
+  IND
+  INF
+}
+
+enum Platform {
+  Instagram
+  TikTok
+  YouTube
+  Facebook
+  Twitch
+  Other
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
+  email         String    @unique
+  passwordHash  String
+
+  role          UserRole  @default(editor)
+  fullName      String?
+
+  status        String    @default("active")  // active/inactive
+  lastLoginAt   DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model RawPeopleInfluencer {
+  recordId                 String    @id
+  recordType               String
+  fullName                 String
+  preferredName            String?
+  gender                   String?
+  birthDate                DateTime?
+  email                    String?
+  phone                    String?
+  city                     String?
+  country                  String?
+  occupation               String?
+  influencerCategory       String?
+  primaryPlatform          String?
+  followersCount           Int?
+  totalFollowersCount      Int?
+  engagementRate           Decimal?  @db.Decimal(8,2)
+  engagementRateTier       String?
+  interests                String?
+  notes                    String?
+  secondaryPlatform        String?
+  secondaryFollowersCount  Int?
+  averageMonthlyReach      Int?
+  collaborationStatus      String?
+  languages                String?
+  portfolioUrl             String?
+  lastContactDate          DateTime?
+
+  createdAt                DateTime @default(now())
+}
+
+model People {
+  id                   Int                   @id @default(autoincrement())
+
+  // record id from RAW table
+  recordId             String?               @unique
+
+  type                 PersonType           
+
+  fullName             String
+  preferredName        String?
+  gender               String?
+  birthDate            DateTime?
+  email                String?
+  phone                String?
+  city                 String?
+  country              String?
+  occupation           String?
+
+  interests            String?
+  notes                String?
+  collaborationStatus  String?
+  languages            String?
+  lastContactDate      DateTime?
+  portfolioUrl         String?
+
+  influencerProfiles   InfluencerProfile[]
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model InfluencerProfile {
+  id                        Int       @id @default(autoincrement())
+  peopleId                  Int       @unique
+
+  category                  String?
+
+  primaryPlatform           Platform?
+  primaryFollowers          Int?
+
+  totalFollowersCount       Int?
+  engagementRate            Decimal?  @db.Decimal(8,2)
+  engagementRateTier        String?
+
+  secondaryPlatform         Platform?
+  secondaryFollowersCount   Int?
+
+  averageMonthlyReach       Int?
+
+  people                    People   @relation(fields: [peopleId], references: [id], onDelete: Cascade)
+}
